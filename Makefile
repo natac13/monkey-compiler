@@ -17,3 +17,6 @@ test:
 	# @go test ./... -v
 	# test the internal folders
 	@go test ./internal/... -v
+
+playground:
+	@go build -o bin/$(APP_NAME) cmd/main.go && ./bin/$(APP_NAME)
