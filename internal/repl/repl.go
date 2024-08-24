@@ -7,6 +7,7 @@ import (
 
 	"github.com/natac13/monkey-compiler/internal/compiler"
 	"github.com/natac13/monkey-compiler/internal/lexer"
+	"github.com/natac13/monkey-compiler/internal/object"
 	"github.com/natac13/monkey-compiler/internal/parser"
 	"github.com/natac13/monkey-compiler/internal/vm"
 )
@@ -15,6 +16,10 @@ const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+
+	constants := []object.Object{}
+	globals := make([]object.Object, vm.GlobalsSize)
+	symbolTable := compiler.NewSymbolTable()
 
 	for {
 		fmt.Fprint(out, PROMPT)
@@ -33,14 +38,17 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		comp := compiler.New()
+		comp := compiler.NewWithState(symbolTable, constants)
 		err := comp.Compile(program)
 		if err != nil {
 			fmt.Fprintf(out, "Woops! Compilation failed:\n %s\n", err)
 			continue
 		}
 
-		machine := vm.New(comp.ByteCode())
+		code := comp.ByteCode()
+		constants = code.Constants
+
+		machine := vm.NewWithGlobalStore(code, globals)
 		err = machine.Run()
 		if err != nil {
 			fmt.Fprintf(out, "Woops! Executing bytecode failed:\n %s\n", err)

@@ -10,6 +10,10 @@ import (
 
 const StackSize = 2048
 
+// GlobalsSize is the size of the global variables store or 256 * 256,
+// as we are using 2 bytes to store the index of the global variable
+const GlobalsSize = 65536
+
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
 var Null = &object.Null{}
@@ -17,6 +21,7 @@ var Null = &object.Null{}
 type VM struct {
 	constants    []object.Object
 	instructions code.Instructions
+	globals      []object.Object
 
 	stack []object.Object
 	sp    int // Always points to the next value. Top of stack is stack[sp-1]
@@ -26,9 +31,16 @@ func New(bytecode *compiler.ByteCode) *VM {
 	return &VM{
 		constants:    bytecode.Constants,
 		instructions: bytecode.Instructions,
+		globals:      make([]object.Object, GlobalsSize),
 		stack:        make([]object.Object, StackSize),
 		sp:           0,
 	}
+}
+
+func NewWithGlobalStore(bytecode *compiler.ByteCode, s []object.Object) *VM {
+	vm := New(bytecode)
+	vm.globals = s
+	return vm
 }
 
 func (vm *VM) StackTop() object.Object {
@@ -111,6 +123,21 @@ func (vm *VM) Run() error {
 			condition := vm.pop()
 			if !isTruthy(condition) {
 				ip = pos - 1
+			}
+
+		case code.OpSetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+
+			vm.globals[globalIndex] = vm.pop()
+
+		case code.OpGetGlobal:
+			globalIndex := code.ReadUint16(vm.instructions[ip+1:])
+			ip += 2
+
+			err := vm.push(vm.globals[globalIndex])
+			if err != nil {
+				return err
 			}
 		}
 	}
