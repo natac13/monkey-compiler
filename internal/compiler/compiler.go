@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/natac13/monkey-compiler/internal/ast"
 	"github.com/natac13/monkey-compiler/internal/code"
@@ -130,6 +131,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		intObj := &object.Integer{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(intObj))
 
+	case *ast.StringLiteral:
+		strObj := &object.String{Value: node.Value}
+		c.emit(code.OpConstant, c.addConstant(strObj))
+
 	case *ast.Boolean:
 		if node.Value {
 			c.emit(code.OpTrue)
@@ -200,6 +205,49 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable %s", node.Value)
 		}
 		c.emit(code.OpGetGlobal, symbol.Index)
+
+	case *ast.ArrayLiteral:
+		for _, el := range node.Elements {
+			err := c.Compile(el)
+			if err != nil {
+				return err
+			}
+		}
+		c.emit(code.OpArray, len(node.Elements))
+
+	case *ast.HashLiteral:
+		keys := []ast.Expression{}
+		for k := range node.Pairs {
+			keys = append(keys, k)
+		}
+		// sort the keys to ensure the same order of the pairs in the hash
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].String() < keys[j].String()
+		})
+
+		for _, k := range keys {
+			err := c.Compile(k)
+			if err != nil {
+				return err
+			}
+			err = c.Compile(node.Pairs[k])
+			if err != nil {
+				return err
+			}
+		}
+		// multiply the length of the pairs by 2 because we add each key and value to the bytecode
+		c.emit(code.OpHash, len(node.Pairs)*2)
+
+	case *ast.IndexExpression:
+		err := c.Compile(node.Left)
+		if err != nil {
+			return err
+		}
+		err = c.Compile(node.Index)
+		if err != nil {
+			return err
+		}
+		c.emit(code.OpIndex)
 	}
 
 	return nil
