@@ -7,21 +7,23 @@ import (
 	"strings"
 
 	"github.com/natac13/monkey-compiler/internal/ast"
+	"github.com/natac13/monkey-compiler/internal/code"
 )
 
 type ObjectType string
 
 const (
-	INTEGER_OBJ      ObjectType = "INTEGER"
-	BOOLEAN_OBJ      ObjectType = "BOOLEAN"
-	NULL_OBJ         ObjectType = "NULL"
-	RETURN_VALUE_OBJ ObjectType = "RETURN_VALUE"
-	ERROR_OBJ        ObjectType = "ERROR"
-	FUNCTION_OBJ     ObjectType = "FUNCTION"
-	STRING_OBJ       ObjectType = "STRING"
-	BUILTIN_OBJ      ObjectType = "BUILTIN"
-	ARRAY_OBJ        ObjectType = "ARRAY"
-	HASH_OBJ         ObjectType = "HASH"
+	INTEGER_OBJ           ObjectType = "INTEGER"
+	BOOLEAN_OBJ           ObjectType = "BOOLEAN"
+	NULL_OBJ              ObjectType = "NULL"
+	RETURN_VALUE_OBJ      ObjectType = "RETURN_VALUE"
+	ERROR_OBJ             ObjectType = "ERROR"
+	FUNCTION_OBJ          ObjectType = "FUNCTION"
+	STRING_OBJ            ObjectType = "STRING"
+	BUILTIN_OBJ           ObjectType = "BUILTIN"
+	ARRAY_OBJ             ObjectType = "ARRAY"
+	HASH_OBJ              ObjectType = "HASH"
+	COMPILED_FUNCTION_OBJ ObjectType = "COMPILED_FUNCTION"
 )
 
 type Object interface {
@@ -177,4 +179,13 @@ func (h *Hash) Inspect() string {
 
 type Hashable interface {
 	HashKey() HashKey
+}
+
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (cn *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
+func (cn *CompiledFunction) Inspect() string {
+	return fmt.Sprintf("CompiledFunction[%p]", cn)
 }

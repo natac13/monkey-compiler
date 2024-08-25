@@ -32,6 +32,12 @@ const (
 	// operand width is 2 bytes, which is the number of elements in the hash
 	OpHash
 	OpIndex
+	// will execute the function at the top of the stack
+	OpCall
+	// will return the value at the top of the stack
+	OpReturnValue
+	// will only instruct the vm to return from the function without a value
+	OpReturn
 )
 
 type Instructions []byte
@@ -70,6 +76,9 @@ var definitions = map[Opcode]*Definition{
 	OpArray:         {"OpArray", []int{2}},
 	OpHash:          {"OpHash", []int{2}},
 	OpIndex:         {"OpIndex", []int{}},
+	OpCall:          {"OpCall", []int{}},
+	OpReturnValue:   {"OpReturnValue", []int{}},
+	OpReturn:        {"OpReturn", []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {
