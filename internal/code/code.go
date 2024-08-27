@@ -40,6 +40,7 @@ const (
 	OpReturnValue
 	// will only instruct the vm to return from the function without a value
 	OpReturn
+	OpGetBuiltin
 )
 
 type Instructions []byte
@@ -83,6 +84,7 @@ var definitions = map[Opcode]*Definition{
 	OpCall:          {"OpCall", []int{1}},
 	OpReturnValue:   {"OpReturnValue", []int{}},
 	OpReturn:        {"OpReturn", []int{}},
+	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 }
 
 func Lookup(op byte) (*Definition, error) {
