@@ -20,3 +20,6 @@ test:
 
 playground:
 	@go build -o bin/$(APP_NAME) cmd/main.go && ./bin/$(APP_NAME)
+
+compare:
+	@go build -o bin/fibonacci ./internal/benchmark && ./bin/fibonacci -engine=eval -fib=20 && ./bin/fibonacci -engine=vm -fib=20

@@ -14,27 +14,43 @@ import (
 )
 
 var engine = flag.String("engine", "vm", "use 'vm' or 'eval'")
+var fibNum = flag.Int("fib", 15, "fibonacci number to calculate")
 
-var input = `
-let fibonacci = fn(x) {
-	if (x == 0) {
-		0
-	} else {
-		if (x == 1) {
-			return 1;
-		} else {
-			fibonacci(x - 1) + fibonacci(x - 2);
-		}
-	}
-};
-fibonacci(30);
-`
+// var input = `
+// let fibonacci = fn(x) {
+// 	if (x == 0) {
+// 		0
+// 	} else {
+// 		if (x == 1) {
+// 			return 1;
+// 		} else {
+// 			fibonacci(x - 1) + fibonacci(x - 2);
+// 		}
+// 	}
+// };
+// fibonacci(30);
+// `
 
 func main() {
 	flag.Parse()
 
 	var duration time.Duration
 	var result object.Object
+
+	input := fmt.Sprintf(`
+		let fibonacci = fn(x) {
+			if (x == 0) {
+				0
+			} else {
+				if (x == 1) {
+					return 1;
+				} else {
+					fibonacci(x - 1) + fibonacci(x - 2);
+				}
+			}
+		};
+		fibonacci(%d);
+	`, *fibNum)
 
 	l := lexer.New(input)
 	p := parser.New(l)
